@@ -17,13 +17,26 @@
       devShells = forEachSupportedSystem ({ pkgs }: {
         default = pkgs.mkShell {
           packages = with pkgs; [
-            dotnet-sdk_9
+            (with dotnetCorePackages; combinePackages [
+              sdk_8_0
+              sdk_9_0
+            ])
             csharp-ls
+            #mono
+            (buildDotnetGlobalTool {
+              pname = "dotnet-ef";
+              version = "9.0.0";
+              nugetHash = "sha256-/Ru/H2WXX/SCqF2s0M1DJkaw+6Nikm+ccrveqiOXggA=";
+            })
           ];
           
           shellHook = ''
-            export DOTNET_ROOT="${pkgs.dotnet-sdk_9}"
-            export PATH=$PATH:$HOME/.dotnet/tools
+            # Ensure needed directories exist
+            mkdir -p "$HOME/.nuget/NuGet"
+            
+            export DOTNET_ROOT="${pkgs.dotnetCorePackages.sdk_9_0}"
+            export DOTNET_CLI_TELEMETRY_OPTOUT=1
+            
             echo ".NET $(dotnet --version) development environment ready"
           '';
         };
