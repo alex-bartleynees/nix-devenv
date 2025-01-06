@@ -36,7 +36,7 @@
           python3
           python3Packages.python-lsp-server
           tree-sitter
-          fzf
+          #fzf
         ];
         
         libraries = with pkgs; [
