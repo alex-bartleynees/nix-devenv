@@ -85,8 +85,19 @@
           export NVIM_APPNAME="lazyvim"
           exec nvim "$@"
         '';
+
+      # Create a package that includes all dependencies
+        lazyvimPackage = pkgs.symlinkJoin {
+          name = "lazyvim-complete";
+          paths = buildDeps ++ neovimDeps ++ libraries ++ [ 
+            checkRebuildNeeded
+            markBuildComplete
+            lazyvim
+          ];
+        };
       in
       {
+        packages.default = lazyvimPackage;
         devShell = pkgs.mkShell {
           NIX_BUILD_SHELL = "${pkgs.zsh}/bin/zsh";
           buildInputs = buildDeps ++ neovimDeps ++ libraries ++ [ 
