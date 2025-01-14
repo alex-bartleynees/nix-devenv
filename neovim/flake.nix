@@ -30,13 +30,7 @@
           ripgrep
           fd
           nodejs
-          nodePackages.typescript
-          nodePackages.typescript-language-server
-          nodePackages.prettier
-          python3
-          python3Packages.python-lsp-server
           tree-sitter
-          fzf
         ];
         
         libraries = with pkgs; [
@@ -78,8 +72,18 @@
           DIR="$1"
           date +%s > "$DIR/.build_stamp"
         '';
+
+       # Create a package that includes all dependencies
+        neovimPackage = pkgs.symlinkJoin {
+          name = "neovim-complete";
+          paths = buildDeps ++ neovimDeps ++ libraries ++ [ 
+            checkRebuildNeeded
+            markBuildComplete
+          ];
+        };
       in
       {
+        packages.default = neovimPackage;
         devShell = pkgs.mkShell {
           NIX_BUILD_SHELL = "${pkgs.zsh}/bin/zsh";
           buildInputs = buildDeps ++ neovimDeps ++ libraries ++ [ 

@@ -49,6 +49,7 @@
           buildInputs = with pkgs; [
             kubectl
             kind
+            kubernetes-helm
             k9s
             initScript
           ];
