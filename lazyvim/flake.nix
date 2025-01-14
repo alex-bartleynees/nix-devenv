@@ -26,7 +26,6 @@
         # Core dependencies
         neovimDeps = with pkgs; [
           neovim
-          git
         ];
         
         libraries = with pkgs; [
