@@ -27,7 +27,6 @@
         neovimDeps = with pkgs; [
           neovim
           git
-          fd
         ];
         
         libraries = with pkgs; [
