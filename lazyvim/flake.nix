@@ -27,18 +27,7 @@
         neovimDeps = with pkgs; [
           neovim
           git
-          ripgrep
           fd
-          nodejs
-          nodePackages.typescript
-          nodePackages.typescript-language-server
-          nodePackages.prettier
-          python3
-          python3Packages.python-lsp-server
-          tree-sitter
-          ruff
-          marksman
-          #fzf
         ];
         
         libraries = with pkgs; [
