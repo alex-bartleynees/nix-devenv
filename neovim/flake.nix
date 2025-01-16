@@ -26,10 +26,6 @@
         # Core dependencies
         neovimDeps = with pkgs; [
           neovim
-          git
-          ripgrep
-          fd
-          nodejs
           tree-sitter
         ];
         
