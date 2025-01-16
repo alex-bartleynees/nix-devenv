@@ -11,50 +11,40 @@
           inherit system;
           config.allowUnfree = true;
         };
-        
+
+        isLinux = system == "x86_64-linux" || system == "aarch64-linux";
+        isDarwin = system == "x86_64-darwin" || system == "aarch64-darwin";
+
         # Build dependencies
-        buildDeps = with pkgs; [
-          gcc
-          gnumake
-          cmake
-          pkg-config
-          unzip
-          curl
-          gzip
-        ];
-        
+        buildDeps = with pkgs; [ gcc gnumake cmake pkg-config unzip curl gzip ];
+
         # Core dependencies
-        neovimDeps = with pkgs; [
-          neovim
-          tree-sitter
-        ];
-        
-        libraries = with pkgs; [
-          stdenv.cc.cc
-          glibc
-        ];
+        neovimDeps = with pkgs; [ neovim tree-sitter ];
+
+        libraries = with pkgs;
+          [ stdenv.cc.cc ] ++ (if isLinux then [ glibc ] else [ ]);
 
         # Function to check if rebuild is needed
         checkRebuildNeeded = pkgs.writeScriptBin "check-rebuild-needed" ''
           #!${pkgs.bash}/bin/bash
           DIR="$1"
           STAMP_FILE="$DIR/.build_stamp"
-          
+
           # Create directory for stamp file if it doesn't exist
           mkdir -p "$(dirname "$STAMP_FILE")"
-          
+
           # First build case
           if [ ! -f "$STAMP_FILE" ]; then
             echo "true"
             exit 0
           fi
-          
+
           # Safe reading of last build time
           LAST_BUILD=$(cat "$STAMP_FILE" 2>/dev/null || echo "0")
-          
+
           # Count files newer than stamp file, suppress errors
           LATEST_CHANGE=$(find "$DIR" -type f -not -path '*/\.*' -newer "$STAMP_FILE" 2>/dev/null | wc -l || echo "0")
-          
+
           if [ "$LATEST_CHANGE" -gt 0 ]; then
             echo "true"
           else
@@ -69,30 +59,34 @@
           date +%s > "$DIR/.build_stamp"
         '';
 
-       # Create a package that includes all dependencies
+        # Create a package that includes all dependencies
         neovimPackage = pkgs.symlinkJoin {
           name = "neovim-complete";
-          paths = buildDeps ++ neovimDeps ++ libraries ++ [ 
-            checkRebuildNeeded
-            markBuildComplete
-          ];
+          paths = buildDeps ++ neovimDeps ++ libraries
+            ++ [ checkRebuildNeeded markBuildComplete ];
         };
-      in
-      {
+      in {
         packages.default = neovimPackage;
         devShell = pkgs.mkShell {
           NIX_BUILD_SHELL = "${pkgs.zsh}/bin/zsh";
-          buildInputs = buildDeps ++ neovimDeps ++ libraries ++ [ 
-            checkRebuildNeeded
-            markBuildComplete 
-          ];
-          NIX_LD = "${pkgs.glibc}/lib/ld-linux-x86-64.so.2";
-          
+          buildInputs = buildDeps ++ neovimDeps ++ libraries
+            ++ [ checkRebuildNeeded markBuildComplete ];
+
           shellHook = ''
-            export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath libraries}:$LD_LIBRARY_PATH"
+            ${if isLinux then
+              ''export NIX_LD="${pkgs.glibc}/lib/ld-linux-x86-64.so.2"''
+            else
+              ""}
+            ${if isLinux then
+              ''
+                export LD_LIBRARY_PATH="${
+                  pkgs.lib.makeLibraryPath libraries
+                }:$LD_LIBRARY_PATH"''
+            else
+              ""}
             export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"
             export NVIM_CONFIG_DIR="$HOME/.config/nvim"
-            
+
             # Set up Lua module path for tests
             export LUA_PATH="./?.lua;./?/init.lua;$HOME/.local/share/nvim/lazy/?/lua/?.lua;$HOME/.local/share/nvim/lazy/?/lua/?/init.lua;;"
             export LUA_CPATH="./?.so;$HOME/.local/share/nvim/lazy/?/lua/?.so;;"
@@ -128,7 +122,7 @@
                 fi
               fi
             done
-            
+
             echo "Neovim development environment loaded!"
             echo "Note: If plugins still need building, run :Lazy sync in Neovim"
           '';

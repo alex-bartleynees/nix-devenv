@@ -17,12 +17,10 @@
             nodejs_20  # Latest LTS version
             nodePackages.npm
             nodePackages."@angular/cli"  # Quoted to handle special characters
-            chromium  # For testing
             git
           ];
 
           shellHook = ''
-            export CHROME_BIN=${pkgs.chromium}/bin/chromium
             export PATH="$PWD/node_modules/.bin:$PATH"
             
             # Create a new Angular project if one doesn't exist
