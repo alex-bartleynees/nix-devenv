@@ -19,7 +19,7 @@
         buildDeps = with pkgs; [ gcc gnumake cmake pkg-config unzip curl gzip ];
 
         # Core dependencies
-        neovimDeps = with pkgs; [ neovim tree-sitter ];
+        neovimDeps = with pkgs; [ neovim tree-sitter node ];
 
         libraries = with pkgs;
           [ stdenv.cc.cc ] ++ (if isLinux then [ glibc ] else [ ]);
