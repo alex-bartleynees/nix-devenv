@@ -51,7 +51,11 @@
             kind
             kubernetes-helm
             k9s
+            gnupg1
+            sops
+            age
             initScript
+            kubectx
           ];
 
           shellHook = ''

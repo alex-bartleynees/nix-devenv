@@ -22,12 +22,18 @@
             docker
             docker-compose
             docker-credential-helpers
+            docker-client
+            docker-buildx
           ];
 
           shellHook = ''
             echo "Docker development environment loaded!"
             echo "Docker version: $(docker --version)"
             echo "Docker Compose version: $(docker-compose --version)"
+
+            if [ -z "$DOCKER_HOST" ]; then
+              export DOCKER_HOST="unix:///var/run/docker.sock"
+            fi
           '';
         };
 

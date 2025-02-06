@@ -18,6 +18,7 @@
             (with pkgs.python311Packages; [
               pip
               venvShellHook
+              ruff
             ]);
         };
       });
