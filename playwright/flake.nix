@@ -105,8 +105,9 @@
             export PATH="$PWD/node_modules/.bin:$PATH"
             export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
             export PLAYWRIGHT_BROWSERS_PATH="$PWD/playwright-browsers"
+            export ANGULAR_DEV_ENVIRONMENT_LOADED=1
           '';
           runScript = "zsh";
-        }));
+        })).env;
     };
 }
