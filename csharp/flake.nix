@@ -34,7 +34,7 @@
             # Ensure needed directories exist
             mkdir -p "$HOME/.nuget/NuGet"
             
-            export DOTNET_ROOT="${pkgs.dotnetCorePackages.sdk_9_0}"
+            export DOTNET_ROOT="${pkgs.dotnetCorePackages.sdk_9_0}/bin"
             export DOTNET_CLI_TELEMETRY_OPTOUT=1
             
             echo ".NET $(dotnet --version) development environment ready"

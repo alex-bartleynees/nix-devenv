@@ -14,7 +14,7 @@
       {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            nodejs_20  # Latest LTS version
+            nodejs_22# Latest LTS version
             nodePackages.npm
             nodePackages."@angular/cli"  # Quoted to handle special characters
             git
