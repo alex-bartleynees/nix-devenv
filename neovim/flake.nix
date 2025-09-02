@@ -35,7 +35,7 @@
           [ stdenv.cc.cc ] ++ (if isLinux then [ glibc ] else [ ]);
 
         # Function to check if rebuild is needed
-        checkRebuildNeeded = pkgs.writeScriptBin "check-rebuild-needed" ''
+        checkRebuildNeeded = pkgs.writeScriptBin "nvim-check-rebuild-needed" ''
           #!${pkgs.bash}/bin/bash
           DIR="$1"
           STAMP_FILE="$DIR/.build_stamp"
@@ -63,7 +63,7 @@
         '';
 
         # Function to mark build as complete
-        markBuildComplete = pkgs.writeScriptBin "mark-build-complete" ''
+        markBuildComplete = pkgs.writeScriptBin "nvim-mark-build-complete" ''
           #!${pkgs.bash}/bin/bash
           DIR="$1"
           date +%s > "$DIR/.build_stamp"
@@ -112,12 +112,12 @@
 
             TELESCOPE_FZF_PATH="$HOME/.local/share/nvim/lazy/telescope-fzf-native.nvim"
             if [ -d "$TELESCOPE_FZF_PATH" ]; then
-              if [ "$(check-rebuild-needed "$TELESCOPE_FZF_PATH")" = "true" ]; then
+              if [ "$(nvim-check-rebuild-needed "$TELESCOPE_FZF_PATH")" = "true" ]; then
                 echo "Building telescope-fzf-native..."
                 cd "$TELESCOPE_FZF_PATH"
                 make clean
                 if make; then
-                  mark-build-complete "$TELESCOPE_FZF_PATH"
+                  nvim-mark-build-complete "$TELESCOPE_FZF_PATH"
                   echo "Successfully built telescope-fzf-native"
                 else
                   echo "Failed to build telescope-fzf-native, skipping..."
@@ -129,7 +129,7 @@
             # Build other C dependencies only if needed with improved error handling
             for plugin_dir in "$HOME/.local/share/nvim/lazy"/*; do
               if [ -f "$plugin_dir/Makefile" ] && [ "$plugin_dir" != "$TELESCOPE_FZF_PATH" ]; then
-                if [ "$(check-rebuild-needed "$plugin_dir")" = "true" ]; then
+                if [ "$(nvim-check-rebuild-needed "$plugin_dir")" = "true" ]; then
                   echo "Building $(basename "$plugin_dir")..."
                   cd "$plugin_dir"
                   
@@ -151,7 +151,7 @@
                   fi
                   
                   if [ "$build_success" = "true" ]; then
-                    mark-build-complete "$plugin_dir"
+                    nvim-mark-build-complete "$plugin_dir"
                     echo "Successfully built $(basename "$plugin_dir")"
                   else
                     echo "Failed to build $(basename "$plugin_dir"), skipping..."
