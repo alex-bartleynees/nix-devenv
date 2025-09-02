@@ -29,9 +29,6 @@
           nodePackages.typescript-language-server
           nodePackages.vscode-langservers-extracted # html, css, json, eslint
           pyright
-          # Add ripgrep for telescope and general searching
-          ripgrep
-          fd
         ];
 
         libraries = with pkgs;
