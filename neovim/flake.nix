@@ -29,6 +29,8 @@
           nodePackages.typescript-language-server
           nodePackages.vscode-langservers-extracted # html, css, json, eslint
           pyright
+          # Add Python pip support
+          python3Packages.pip
         ];
 
         libraries = with pkgs;
