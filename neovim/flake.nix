@@ -18,8 +18,21 @@
         # Build dependencies
         buildDeps = with pkgs; [ gcc gnumake cmake pkg-config unzip curl gzip ];
 
-        # Core dependencies
-        neovimDeps = with pkgs; [ neovim tree-sitter nodejs_22 ];
+        # Core dependencies with common LSP servers
+        neovimDeps = with pkgs; [ 
+          neovim 
+          tree-sitter 
+          nodejs_22 
+          # Common LSP servers that work better as system packages
+          lua-language-server
+          nil # Nix LSP
+          nodePackages.typescript-language-server
+          nodePackages.vscode-langservers-extracted # html, css, json, eslint
+          pyright
+          # Add ripgrep for telescope and general searching
+          ripgrep
+          fd
+        ];
 
         libraries = with pkgs;
           [ stdenv.cc.cc ] ++ (if isLinux then [ glibc ] else [ ]);
@@ -42,8 +55,8 @@
           # Safe reading of last build time
           LAST_BUILD=$(cat "$STAMP_FILE" 2>/dev/null || echo "0")
 
-          # Count files newer than stamp file, suppress errors
-          LATEST_CHANGE=$(find "$DIR" -type f -not -path '*/\.*' -newer "$STAMP_FILE" 2>/dev/null | wc -l || echo "0")
+          # Count files newer than stamp file, limit search depth for performance
+          LATEST_CHANGE=$(find "$DIR" -maxdepth 3 -type f -not -path '*/\.*' -newer "$STAMP_FILE" 2>/dev/null | wc -l || echo "0")
 
           if [ "$LATEST_CHANGE" -gt 0 ]; then
             echo "true"
@@ -84,7 +97,15 @@
                 }:$LD_LIBRARY_PATH"''
             else
               ""}
-            export PATH="$HOME/.local/share/nvim/mason/bin:$PATH"
+            # Improved PATH handling - add Mason after system tools to avoid conflicts
+            # but allow Mason to override if explicitly needed
+            export MASON_BIN="$HOME/.local/share/nvim/mason/bin"
+            if [ -d "$MASON_BIN" ]; then
+              # Remove Mason from PATH if already present
+              export PATH=$(echo "$PATH" | sed "s|:*$MASON_BIN:*|:|g" | sed "s|^:||" | sed "s|:$||")
+              # Add Mason at the end so system tools take precedence
+              export PATH="$PATH:$MASON_BIN"
+            fi
             export NVIM_CONFIG_DIR="$HOME/.config/nvim"
 
             # Set up Lua module path for tests
@@ -98,32 +119,55 @@
                 echo "Building telescope-fzf-native..."
                 cd "$TELESCOPE_FZF_PATH"
                 make clean
-                make
-                mark-build-complete "$TELESCOPE_FZF_PATH"
+                if make; then
+                  mark-build-complete "$TELESCOPE_FZF_PATH"
+                  echo "Successfully built telescope-fzf-native"
+                else
+                  echo "Failed to build telescope-fzf-native, skipping..."
+                fi
                 cd - > /dev/null
               fi
             fi
 
-            # Build other C dependencies only if needed
+            # Build other C dependencies only if needed with improved error handling
             for plugin_dir in "$HOME/.local/share/nvim/lazy"/*; do
               if [ -f "$plugin_dir/Makefile" ] && [ "$plugin_dir" != "$TELESCOPE_FZF_PATH" ]; then
                 if [ "$(check-rebuild-needed "$plugin_dir")" = "true" ]; then
-                  echo "Building $plugin_dir..."
+                  echo "Building $(basename "$plugin_dir")..."
                   cd "$plugin_dir"
-                  make clean
-                  # Skip tests by explicitly calling make binary
-                  if [ -f "Makefile" ] && grep -q "^binary:" "Makefile"; then
-                    make binary
-                  else
-                    make SKIP_TESTS=1
+                  
+                  # Clean previous build
+                  if ! make clean 2>/dev/null; then
+                    echo "Warning: Failed to clean $(basename "$plugin_dir"), continuing..."
                   fi
-                  mark-build-complete "$plugin_dir"
+                  
+                  # Try different build targets with error handling
+                  build_success=false
+                  if [ -f "Makefile" ] && grep -q "^binary:" "Makefile"; then
+                    if make binary; then
+                      build_success=true
+                    fi
+                  elif make SKIP_TESTS=1 2>/dev/null; then
+                    build_success=true
+                  elif make 2>/dev/null; then
+                    build_success=true
+                  fi
+                  
+                  if [ "$build_success" = "true" ]; then
+                    mark-build-complete "$plugin_dir"
+                    echo "Successfully built $(basename "$plugin_dir")"
+                  else
+                    echo "Failed to build $(basename "$plugin_dir"), skipping..."
+                  fi
+                  
                   cd - > /dev/null
                 fi
               fi
             done
 
             echo "Neovim development environment loaded!"
+            echo "System LSP servers available: lua-language-server, nil, typescript-language-server, pyright"
+            echo "Mason tools available in: $MASON_BIN"
             echo "Note: If plugins still need building, run :Lazy sync in Neovim"
           '';
         };
