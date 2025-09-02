@@ -16,7 +16,7 @@
         isDarwin = system == "x86_64-darwin" || system == "aarch64-darwin";
 
         # Build dependencies
-        buildDeps = with pkgs; [ gcc gnumake cmake pkg-config unzip curl gzip ];
+        buildDeps = with pkgs; [ gcc gnumake cmake pkg-config unzip curl gzip rustc cargo ];
 
         # Core dependencies with common LSP servers
         neovimDeps = with pkgs; [ 
