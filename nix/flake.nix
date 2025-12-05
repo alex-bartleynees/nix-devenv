@@ -14,14 +14,8 @@
       devShells = forEachSupportedSystem ({ pkgs }: {
         default = pkgs.mkShell {
           packages = with pkgs; [
-            cachix
-            lorri
-            niv
-            nixfmt-classic
-            statix
-            vulnix
-            haskellPackages.dhall-nix
-            nil
+            nixfmt-rfc-style  # Modern nixfmt (or use nixfmt-classic if you prefer)
+            nil               # Nix LSP
           ];
         };
       });
