@@ -13,7 +13,7 @@
           name = "Angular development environment";
           targetPkgs = pkgs:
             with pkgs; [
-              nodejs_22
+              nodejs_24
               nodePackages.npm
               chromium
               nodePackages."@angular/cli"

@@ -16,13 +16,23 @@
         isDarwin = system == "x86_64-darwin" || system == "aarch64-darwin";
 
         # Build dependencies
-        buildDeps = with pkgs; [ gcc gnumake cmake pkg-config unzip curl gzip rustc cargo ];
+        buildDeps = with pkgs; [
+          gcc
+          gnumake
+          cmake
+          pkg-config
+          unzip
+          curl
+          gzip
+          rustc
+          cargo
+        ];
 
         # Core dependencies with common LSP servers
-        neovimDeps = with pkgs; [ 
-          neovim 
-          tree-sitter 
-          nodejs_22 
+        neovimDeps = with pkgs; [
+          neovim
+          tree-sitter
+          nodejs_24
           # Common LSP servers that work better as system packages
           lua-language-server
           nil # Nix LSP
